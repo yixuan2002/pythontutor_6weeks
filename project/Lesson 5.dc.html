@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-client.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family:'Cubic 11'; src:url('fonts/Cubic_11.woff2') format('woff2'); font-weight:400; font-display:swap; }
+  * { box-sizing:border-box; }
+  button:focus, button:focus-visible, a:focus, *:focus, *:focus-visible { outline:none !important; }
+  button { -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; padding:0; height:100%; }
+  body {
+    font-family:'DM Sans','Noto Sans TC',system-ui,sans-serif;
+    color:#2c3a1b; background-color:#fffbef;
+    -webkit-font-smoothing:antialiased;
+  }
+  @keyframes riseIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes popIn { from { opacity:0; transform:scale(.94); } to { opacity:1; transform:scale(1); } }
+  ::-webkit-scrollbar { width:10px; }
+  ::-webkit-scrollbar-thumb { background:#e7dcc0; border-radius:99px; border:2px solid #fffbef; }
+</style>
+</helmet>
+
+<div style="height:100vh; overflow:hidden; font-family:'DM Sans','Noto Sans TC',system-ui,sans-serif; color:#2c3a1b;">
+
+  <!-- ============================= LOGIN VIEW ============================= -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
+      <div style="font-size:19px; font-weight:600; color:#546a27; margin-bottom:10px;">歡迎來到</div>
+      <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(40px,7vw,72px); line-height:1.02; color:#2c3a1b; margin:0 0 10px;">Python入門課程</h1>
+      <p style="font-size:17px; font-weight:500; color:#546a27; margin:0 0 36px;">輸入你的名字，開始上課吧！</p>
+      <div style="display:flex; flex-direction:column; gap:16px; width:100%; max-width:340px;">
+        <input value="{{ name }}" onChange="{{ setName }}" onKeyDown="{{ onLoginKey }}" placeholder="你的名字" style="font-family:'DM Sans','Noto Sans TC',sans-serif; font-size:18px; font-weight:600; text-align:center; color:#2c3a1b; background:#fff; border:1.5px solid #e7dcc0; border-radius:16px; padding:14px 18px; outline:none;"></input>
+        <button onClick="{{ doLogin }}" style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:18px; cursor:pointer; border:none; border-radius:999px; padding:14px 28px; background:#ff8a1e; color:#fffdf3; box-shadow:0 4px 0 #ec7a00;">進入課程 →</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============================= MENU VIEW ============================= -->
+  <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
+    <div style="height:100vh; display:flex; flex-direction:column; overflow-y:auto; background-image:linear-gradient(#e7dcc0 1px,transparent 1px),linear-gradient(90deg,#e7dcc0 1px,transparent 1px); background-size:28px 28px;">
+      <div style="display:flex; justify-content:flex-end; align-items:center; padding:26px 40px;">
+        <button onClick="{{ signOut }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e7dcc0; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; color:#546a27; padding:9px 20px; border-radius:999px; box-shadow:0 2px 0 #e7dcc0;">登出</button>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px 24px 80px;">
+        <div style="font-size:20px; font-weight:600; color:#546a27; margin-top:28px; margin-bottom:6px;">Hello, {{ studentName }}！</div>
+        <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(44px,7vw,80px); line-height:1.02; color:#2c3a1b; margin:0;">Python入門課程</h1>
+        <div style="display:flex; flex-wrap:wrap; gap:18px; justify-content:center; max-width:840px; margin-top:44px;">
+          <sc-for list="{{ lessons }}" as="ls" hint-placeholder-count="6">
+            <button onClick="{{ ls.onClick }}" style="{{ ls.style }}">
+              <span style="{{ ls.badgeStyle }}">{{ ls.n }}</span>
+              <span style="font-size:19px; font-weight:700; color:#2c3a1b; line-height:1.1;">{{ ls.label }}</span>
+              <span style="{{ ls.tagStyle }}">{{ ls.tag }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============================= LESSON VIEW ============================= -->
+  <sc-if value="{{ isLesson }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid; grid-template-columns:340px 1fr; height:100vh; overflow:hidden; background:#fffbef;">
+
+      <!-- SIDEBAR -->
+      <aside style="position:relative; padding:14px 12px; background:#fffbef; border-right:1.5px solid #e7dcc0; display:flex; flex-direction:column; gap:8px; overflow-y:auto;">
+        <button onClick="{{ backExit }}" style="display:inline-flex; align-items:center; gap:8px; align-self:flex-start; background:transparent; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; color:#8a9472; padding:4px 8px;">◀ back</button>
+        <div style="display:flex; align-items:center; gap:12px; padding:0 8px;">
+          <div style="width:40px; height:40px; flex:0 0 40px; display:grid; place-items:center; font-size:22px; background:#4d8e02; border-radius:16px; box-shadow:0 4px 0 #3c7300;">🐍</div>
+          <div style="line-height:1.1;">
+            <div style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:22px; color:#2c3a1b;">Python 入門</div>
+            <div style="font-weight:600; font-size:12.5px; color:#4d8e02; letter-spacing:0.02em; font-family:DM Sans;">第五週 · 資料結構</div>
+          </div>
+        </div>
+        <div style="font-weight:700; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#8a9472; padding:0 8px; margin-top:4px;">Agenda</div>
+        <ul style="display:flex; flex-direction:column; gap:4px; list-style:none; margin:0; padding:0;">
+          <sc-for list="{{ agenda }}" as="a" hint-placeholder-count="6">
+            <li>
+              <sc-if value="{{ a.isActive }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ a.onClick }}" style="position:relative; display:grid; grid-template-columns:38px 1fr; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer; padding:7px 10px; border-radius:20px; border:1.5px solid #e7dcc0; background:#fff; box-shadow:0 6px 16px rgba(74,90,20,0.14); outline:none; -webkit-tap-highlight-color:transparent; font-family:'DM Sans','Noto Sans TC',sans-serif; transition:all .22s;">
+                  <span style="width:36px; height:36px; display:grid; place-items:center; font-size:18px; border-radius:12px; background:#ff8a1e; border:1.5px solid #ec7a00; color:#fffdf3; box-shadow:0 3px 0 #ec7a00;">{{ a.icon }}</span>
+                  <span style="font-size:15px; font-weight:700; color:#2c3a1b; line-height:1.2;">{{ a.title }}</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ a.isDone }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ a.onClick }}" style="position:relative; display:grid; grid-template-columns:38px 1fr; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer; padding:7px 10px; border-radius:20px; border:1.5px solid transparent; background:transparent; box-shadow:none; outline:none; -webkit-tap-highlight-color:transparent; font-family:'DM Sans','Noto Sans TC',sans-serif; transition:all .22s;">
+                  <span style="width:36px; height:36px; display:grid; place-items:center; font-size:18px; border-radius:12px; background:#cfe6a8; border:1.5px solid #4d8e02; color:#2c3a1b;">✓</span>
+                  <span style="font-size:15px; font-weight:600; color:#2c3a1b; line-height:1.2;">{{ a.title }}</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ a.isFuture }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ a.onClick }}" style="position:relative; display:grid; grid-template-columns:38px 1fr; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer; padding:7px 10px; border-radius:20px; border:1.5px solid transparent; background:transparent; box-shadow:none; outline:none; -webkit-tap-highlight-color:transparent; font-family:'DM Sans','Noto Sans TC',sans-serif; transition:all .22s;">
+                  <span style="width:36px; height:36px; display:grid; place-items:center; font-size:18px; border-radius:12px; background:#f6ecd2; border:1.5px solid #e7dcc0; color:#2c3a1b;">{{ a.icon }}</span>
+                  <span style="font-size:15px; font-weight:600; color:#2c3a1b; line-height:1.2;">{{ a.title }}</span>
+                </button>
+              </sc-if>
+            </li>
+          </sc-for>
+        </ul>
+        <div style="margin-top:auto; padding:12px 8px 0;">
+          <div style="height:10px; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:{{ progressW }}; background:#4d8e02; border-radius:999px; transition:width .38s cubic-bezier(.34,1.56,.64,1);"></div>
+          </div>
+          <div style="font-size:12px; font-weight:600; color:#8a9472; margin-top:6px;">進度 {{ progress }}% · 第 {{ secNum }} / 6 站</div>
+        </div>
+      </aside>
+
+      <!-- CONTENT -->
+      <main ref="{{ contentRef }}" style="overflow-y:auto; position:relative; background:transparent;">
+        <div style="max-width:860px; margin:0 auto; padding:48px 48px 96px;">
+
+          <!-- ===== SEC 0 · 課程總覽 ===== -->
+          <sc-if value="{{ isSec0 }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px; white-space:nowrap;">🐍 第五週</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">資料結構</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 24px;">這週學會「整理資料的方法」—— 用 list 排隊、用 dict 貼標籤，讓電腦更快找到東西。</p>
+
+              <div style="display:inline-flex; align-items:center; gap:10px; background:#fff4e6; border:1.5px solid #ffb46b; border-radius:999px; padding:8px 18px; margin-bottom:32px;">
+                <span style="font-size:18px;">🔗</span>
+                <span style="font-size:14.5px; font-weight:600; color:#546a27;">銜接上週：def / 參數 / return 函式</span>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px; display:flex; align-items:center; gap:10px;">📋 本週學習目標</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 12px;">學完這堂課，你可以：</p>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <sc-for list="{{ goals }}" as="g" hint-placeholder-count="5">
+                    <div style="display:flex; gap:13px; align-items:flex-start; background:#fff; border:1.5px solid #e7dcc0; border-radius:20px; padding:15px 18px; box-shadow:0 2px 0 rgba(60,72,0,0.10);">
+                      <span style="flex:0 0 28px; width:28px; height:28px; border-radius:50%; background:#4d8e02; color:#fffdf3; display:grid; place-items:center; font-size:15px; font-weight:700; box-shadow:0 2px 0 #3c7300;">✓</span>
+                      <span style="font-size:16px; line-height:1.45; color:#2c3a1b; padding-top:2px;">{{ g }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px; display:flex; align-items:center; gap:10px;">🗺 今天的流程</h3>
+                <div style="display:flex; flex-direction:column;">
+                  <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="6">
+                    <div style="display:grid; grid-template-columns:40px 1fr; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid #efe6cf;">
+                      <span style="font-size:22px; text-align:center;">{{ t.icon }}</span>
+                      <span style="font-size:16px; font-weight:600; color:#2c3a1b;">{{ t.name }}<span style="display:block; font-size:13.5px; font-weight:500; color:#8a9472;">{{ t.desc }}</span></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== SEC 1 · 概念講解 ===== -->
+          <sc-if value="{{ isSec1 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">📖 第一部分</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">概念講解</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">list 清單操作，加上 dict 字典基礎 —— 兩種最常用的資料容器。</p>
+
+              <div style="margin-bottom:32px;">
+                <div style="border-radius:20px; padding:18px 20px; margin-bottom:20px; border:1.5px solid #ffb46b; background:#fff4e6; display:flex; gap:14px;">
+                  <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">🧸</div>
+                  <div><div style="font-weight:700; font-size:15px; color:#2c3a1b; margin-bottom:6px;">什麼是資料結構？</div>
+                    <p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">想像房間裡有很多玩具。全部丟地板上很難找；但如果用<strong style="color:#2c3a1b;">盒子裝樂高、架子放書、抽屜收衣服</strong>，就好找多了。資料結構就是「整理資料的方法」，讓電腦更快找到、更方便使用資料。</p>
+                  </div>
+                </div>
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">5-1　list（清單）</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">list 是一個<strong style="color:#2c3a1b;">有順序</strong>的容器，可以放任意數量、任意型別的元素，而且可以隨時增加或刪除。</p>
+                <x-import component="CodeBlock" from="./widgets.jsx" file="list_basics.py" code="{{ listCode }}" hint-size="100%,440px"></x-import>
+                <div style="border-radius:20px; padding:18px 20px; margin-top:8px; border:1.5px solid #fe9cdc; background:#fef0f9; display:flex; gap:14px;">
+                  <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">⚠️</div>
+                  <div><div style="font-weight:700; font-size:15px; color:#2c3a1b; margin-bottom:6px;">索引從 0 開始！</div>
+                    <p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">第一個元素是 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">fruits[0]</span>，不是 fruits[1]。記不住的話，想成「排隊編號從 0 開始」。<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">[-1]</span> 則是最後一個，超好用。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">5-2　list 常用操作</h3>
+                <table style="width:100%; border-collapse:separate; border-spacing:0; border:1.5px solid #e7dcc0; border-radius:20px; overflow:hidden; background:#fff; font-size:15px;">
+                  <thead><tr><th style="text-align:left; background:#cfe6a8; color:#2c3a1b; font-weight:700; padding:12px 16px; font-size:14px;">操作</th><th style="text-align:left; background:#cfe6a8; color:#2c3a1b; font-weight:700; padding:12px 16px; font-size:14px;">說明</th><th style="text-align:left; background:#cfe6a8; color:#2c3a1b; font-weight:700; padding:12px 16px; font-size:14px;">範例</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ listOps }}" as="o" hint-placeholder-count="6">
+                      <tr><td style="{{ o.td }}"><code style="font-family:'SF Mono',ui-monospace,monospace; font-size:13px; color:#3c7300;">{{ o.op }}</code></td><td style="{{ o.td }}">{{ o.desc }}</td><td style="{{ o.td }}"><code style="font-family:'SF Mono',ui-monospace,monospace; font-size:13px; color:#3c7300;">{{ o.ex }}</code></td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:14px 0 12px;">用 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">for...in</span> 遍歷每個元素，或用 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">enumerate()</span> 同時拿到索引和值：</p>
+                <x-import component="CodeBlock" from="./widgets.jsx" file="list_iterate.py" code="{{ iterateCode }}" hint-size="100%,220px"></x-import>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">5-3　dict（字典）</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">dict 用「<strong style="color:#2c3a1b;">鍵（key）: 值（value）</strong>」的方式儲存資料，適合用名稱查找對應值，沒有固定順序。</p>
+                <x-import component="CodeBlock" from="./widgets.jsx" file="dict_basics.py" code="{{ dictCode }}" hint-size="100%,460px"></x-import>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px;">
+                  <div style="background:#f3f8e9; border:1.5px solid #cfe6a8; border-radius:20px; padding:18px 20px;">
+                    <div style="font-family:'SF Mono',ui-monospace,monospace; font-weight:700; color:#4d8e02; font-size:17px; margin-bottom:10px;">list — 有順序</div>
+                    <p style="font-size:14px; line-height:1.55; color:#546a27; margin:0;">用<strong style="color:#2c3a1b;">數字索引</strong>取值。適合：蛇身座標、分數排行榜、購物清單。</p>
+                  </div>
+                  <div style="background:#fff4e6; border:1.5px solid #ffb46b; border-radius:20px; padding:18px 20px;">
+                    <div style="font-family:'SF Mono',ui-monospace,monospace; font-weight:700; color:#ec7a00; font-size:17px; margin-bottom:10px;">dict — 有標籤</div>
+                    <p style="font-size:14px; line-height:1.55; color:#546a27; margin:0;">用<strong style="color:#2c3a1b;">名稱</strong>查值。適合：玩家資料、遊戲設定、速查表。</p>
+                  </div>
+                </div>
+                <div style="text-align:center; font-size:15.5px; font-weight:600; color:#546a27; margin-top:16px; background:#f6ecd2; border:1.5px dashed #e7dcc0; border-radius:16px; padding:12px 16px;">💡 記憶訣竅：需要<strong style="color:#2c3a1b;">排隊</strong>（有順序）用 list；需要<strong style="color:#2c3a1b;">查名字</strong>（有標籤）用 dict。</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== SEC 2 · 例題示範 ===== -->
+          <sc-if value="{{ isSec2 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">💡 第二部分</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">例題示範</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">兩個例題，左邊改程式，右邊按 ▶ 執行看結果！</p>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">例題一：成績管理系統</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">把 list 和 dict 結合起來 —— 一個 <strong style="color:#2c3a1b;">list 裝多個 dict</strong>，管理多位學生的成績。這是真實程式裡超常見的資料結構！</p>
+                <x-import component="PyRunner" from="./widgets.jsx" file="grades.py" initial-code="{{ gradesCode }}" hint-size="100%,680px"></x-import>
+                <div style="border-radius:20px; padding:18px 20px; margin-top:12px; border:1.5px solid #cfe6a8; background:#f3f8e9; display:flex; gap:14px;">
+                  <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">🤔</div>
+                  <div><div style="font-weight:700; font-size:15px; color:#2c3a1b; margin-bottom:6px;">動動腦：一層一層拆開</div>
+                    <p style="font-size:15px; line-height:1.55; margin:0 0 4px; color:#546a27;"><span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">students[0]</span> 是什麼？<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">students[0]['name']</span> 又是什麼？</p>
+                    <p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">想新增一位同學，要怎麼做？（提示：<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">append</span> 一個新的 dict）</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">例題二：用 dict 做速查表</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">dict 最常見的用途：把一長串 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">if/elif</span> 判斷，換成一個簡潔的<strong style="color:#2c3a1b;">查表結構</strong>。</p>
+                <x-import component="PyRunner" from="./widgets.jsx" file="lookup.py" initial-code="{{ lookupCode }}" hint-size="100%,580px"></x-import>
+                <div style="border-radius:20px; padding:18px 20px; margin-top:12px; border:1.5px solid #cfe6a8; background:#f3f8e9; display:flex; gap:14px;">
+                  <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">💡</div>
+                  <div><div style="font-weight:700; font-size:15px; color:#2c3a1b; margin-bottom:6px;">觀念點：查表法（lookup table）</div>
+                    <p style="font-size:15px; line-height:1.55; margin:0 0 4px; color:#546a27;">當 if/elif 的每個分支只是回傳一個固定值，就可以用 dict 速查表取代。<strong style="color:#2c3a1b;">新增選項只要加一行 dict 內容</strong>，不用動函式邏輯。</p>
+                    <p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">這是真實工程師常用的技巧 —— 你已經在寫專業的程式了！</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== SEC 3 · 動手練習 ===== -->
+          <sc-if value="{{ isSec3 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">✏️ 第三部分</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">動手練習</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 16px;">三個練習，前兩個暖身，<strong style="color:#2c3a1b;">第三題是本課最重要的里程碑</strong> —— 終於要讓蛇吃到食物後真的變長了！左邊寫程式，右邊按 ▶ 執行。</p>
+              <div style="border-radius:20px; padding:16px 20px; margin-bottom:24px; border:1.5px solid #ffb46b; background:#fff4e6; display:flex; gap:14px;">
+                <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">🎯</div>
+                <div><p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">完成練習三，代表你已經掌握了貪吃蛇的核心邏輯 —— 下週只要加上畫面，遊戲就完成了！慢慢做，不懂隨時問。</p></div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">練習一：購物清單管理員 <span style="font-size:13px; font-weight:600; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:3px 10px;">基礎</span></h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">練習 list 的 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">append</span>、<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">remove</span>、<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">in</span>。輸入框已填好一連串動作（每行一個），按執行看看互動流程！</p>
+                <x-import component="PyRunner" from="./widgets.jsx" file="shopping.py" initial-code="{{ shoppingCode }}" default-inputs="{{ shoppingInputs }}" hint-size="100%,600px"></x-import>
+                <div style="border-radius:20px; padding:16px 20px; margin-top:12px; border:1.5px dashed #e7dcc0; background:#f6ecd2; display:flex; gap:14px;">
+                  <div style="font-size:20px; line-height:1.3; flex:0 0 auto;">🚀</div>
+                  <div><p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;"><strong style="color:#2c3a1b;">延伸挑戰：</strong>加入 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">count</span> 動作，顯示還有幾件東西要買（提示：<span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">len()</span>）。</p></div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">練習二：玩家資料卡 <span style="font-size:13px; font-weight:600; color:#ec7a00; background:#ffb46b; border-radius:999px; padding:3px 10px;">中階</span></h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">用 dict 儲存玩家資料，練習新增、修改、查詢。注意 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">items</span> 是一個 <strong style="color:#2c3a1b;">list 放在 dict 裡</strong> —— 資料結構可以互相嵌套！</p>
+                <x-import component="PyRunner" from="./widgets.jsx" file="player_card.py" initial-code="{{ playerCode }}" hint-size="100%,640px"></x-import>
+                <div style="border-radius:20px; padding:16px 20px; margin-top:12px; border:1.5px dashed #e7dcc0; background:#f6ecd2; display:flex; gap:14px;">
+                  <div style="font-size:20px; line-height:1.3; flex:0 0 auto;">🔑</div>
+                  <div><p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;"><span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">player["items"].append("寶劍")</span> —— 先用 key 拿到背包（一個 list），再對它 append。一行做兩件事！</p></div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">練習三：🐍 蛇身增長 + 食物重生 <span style="font-size:13px; font-weight:600; color:#fffdf3; background:#ff8a1e; border-radius:999px; padding:3px 10px;">里程碑</span></h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">五週以來最完整的遊戲邏輯！用 list 讓蛇吃到食物後真正<strong style="color:#2c3a1b;">變長</strong>，並讓食物在新位置<strong style="color:#2c3a1b;">重生</strong>。執行看看模擬的每一步！</p>
+                <x-import component="PyRunner" from="./widgets.jsx" file="snake_grow.py" initial-code="{{ snakeGrowCode }}" hint-size="100%,720px"></x-import>
+                <div style="border-radius:20px; padding:18px 20px; margin-top:12px; border:1.5px solid #cfe6a8; background:#f3f8e9; display:flex; gap:14px;">
+                  <div style="font-size:22px; line-height:1.3; flex:0 0 auto;">💡</div>
+                  <div><div style="font-weight:700; font-size:15px; color:#2c3a1b; margin-bottom:6px;">三個關鍵思路</div>
+                    <p style="font-size:15px; line-height:1.55; margin:0 0 4px; color:#546a27;">① <strong style="color:#2c3a1b;">吃到食物時不移除尾巴</strong> → 蛇自動變長一節！</p>
+                    <p style="font-size:15px; line-height:1.55; margin:0 0 4px; color:#546a27;">② <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">insert(0, new_head)</span> 把新蛇頭插在最前面，比 append 更適合這裡。</p>
+                    <p style="font-size:15px; line-height:1.55; margin:0; color:#546a27;">③ <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">head in snake[1:]</span> 用切片跳過蛇頭，檢查有沒有咬到自己。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== SEC 4 · 小考 ===== -->
+          <sc-if value="{{ isSec4 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">📝 第四部分</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 32px;">小考</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">五題，選擇＋填充混合。作答後馬上知道答案！</p>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="1" question="執行以下程式會輸出什麼？　fruits = ['蘋果', '香蕉', '橘子']　print(fruits[-1])" options="{{ q1opts }}" answer="2" explain="[-1] 是最後一個元素，所以是「橘子」。" hint-size="100%,320px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="2" question="下列哪個操作可以把元素加到 list 的最後面？" options="{{ q2opts }}" answer="2" explain="Python 用 append(x) 把元素加到尾端。add / push 是其他語言的寫法。" hint-size="100%,320px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="3" question="關於 dict 的敘述，哪一個正確？" options="{{ q3opts }}" answer="2" explain="dict.get(key, default) 在 key 不存在時回傳 default，不會報錯 —— 這是安全取值的好習慣。" hint-size="100%,340px"></x-import>
+              <x-import component="FillQuestion" from="./widgets.jsx" no="4" question="填空：snake = [[5,10],[4,10],[3,10]]，印出蛇身節數（清單長度）要用哪個函式？　print(___(snake))" answer="len" explain="len() 回傳清單的長度（元素個數）。" hint-size="100%,200px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="5" question="player = {'name': '小明', 'score': 0}，讓 score 增加 10 的寫法是哪一個？" options="{{ q5opts }}" answer="0" explain="player['score'] += 10 等同 player['score'] = player['score'] + 10。" hint-size="100%,300px"></x-import>
+            </div>
+          </sc-if>
+
+          <!-- ===== SEC 5 · 遊戲片段預覽 ===== -->
+          <sc-if value="{{ isSec5 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">🎮 第五部分</div>
+              <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">遊戲片段預覽</h1>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">五週的概念全部拼起來了 —— 用 dict 裝整個遊戲狀態，這就是完整的貪吃蛇骨架。</p>
+
+              <div style="margin-bottom:32px;">
+                <h3 style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:22px; color:#2c3a1b; margin:0 0 12px;">整合五週成果的遊戲骨架</h3>
+                <p style="font-size:16.5px; line-height:1.62; color:#546a27; margin:0 0 16px;">第一週變數、第二週 if、第三週 while、第四週函式、第五週 dict & list —— 全部到齊。整個遊戲狀態用一個 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#f6ecd2; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">dict</span> 裝起來，乾淨又好管理。</p>
+                <x-import component="CodeBlock" from="./widgets.jsx" file="snake_skeleton.py" code="{{ gameSkeletonCode }}" hint-size="100%,640px"></x-import>
+              </div>
+
+              <div style="margin-bottom:32px;">
+                <div style="border-radius:20px; padding:20px 22px; border:1.5px solid #ffb46b; background:#fff4e6; display:flex; gap:14px;">
+                  <div style="font-size:24px; line-height:1.3; flex:0 0 auto;">🔮</div>
+                  <div><div style="font-weight:700; font-size:16px; color:#2c3a1b; margin-bottom:8px;">想一想（留到下週）</div>
+                    <p style="font-size:15px; line-height:1.6; margin:0 0 6px; color:#546a27;">這個遊戲現在在終端機跑，看得到分數，但<strong style="color:#2c3a1b;">看不到畫面</strong>。</p>
+                    <p style="font-size:15px; line-height:1.6; margin:0; color:#546a27;">下週用 <span style="font-family:'SF Mono',ui-monospace,monospace; font-size:0.9em; background:#fff; border:1px solid #e7dcc0; border-radius:7px; padding:1px 6px; color:#3c7300;">turtle 模組</span>，把它變成真正有畫面、可以用鍵盤控制的遊戲！想一想：turtle 要怎麼畫一個格子？蛇身每一節要怎麼畫？</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== END-OF-LESSON BUTTONS (inverted triangle) ===== -->
+              <div style="margin-top:48px; padding-top:36px; border-top:1.5px solid #e7dcc0; display:flex; flex-direction:column; align-items:center; gap:20px;">
+                <div style="text-align:center;">
+                  <div style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:30px; color:#2c3a1b;">🎉 完成 Lesson 5！</div>
+                  <div style="font-size:16px; color:#546a27; margin-top:6px;">貪吃蛇的核心邏輯全部完成了 —— 下週只要加上畫面！</div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:18px;">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <sc-if value="{{ saved }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:inline-flex; align-items:center; gap:7px; color:#3c7300; font-weight:700; font-size:15px; animation:popIn .3s cubic-bezier(.34,1.56,.64,1);">
+                        <span style="width:26px; height:26px; border-radius:50%; background:#4d8e02; color:#fffdf3; display:grid; place-items:center; font-size:15px; box-shadow:0 2px 0 #3c7300;">✓</span>已儲存
+                      </span>
+                    </sc-if>
+                    <button onClick="{{ endCourse }}" style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:16px; border:none; cursor:pointer; border-radius:999px; padding:14px 30px; background:#4d8e02; color:#fffdf3; box-shadow:0 4px 0 #3c7300;">結束課程</button>
+                  </div>
+                  <button onClick="{{ bookNext }}" style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:16px; border:none; cursor:pointer; border-radius:999px; padding:14px 30px; background:#ff8a1e; color:#fffdf3; box-shadow:0 4px 0 #ec7a00;">預約下一堂課 →</button>
+                </div>
+                <button onClick="{{ goMenu }}" style="font-family:'DM Sans',sans-serif; font-weight:600; font-size:16px; cursor:pointer; border-radius:999px; padding:14px 30px; background:#fff; color:#2c3a1b; border:1.5px solid #e7dcc0;">回課程選單</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== FOOTER NAV (non-final sections) ===== -->
+          <sc-if value="{{ notLast }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:48px; padding-top:24px; border-top:1.5px solid #e7dcc0;">
+              <button onClick="{{ prevSec }}" style="{{ prevStyle }}">← 上一站</button>
+              <button onClick="{{ nextSec }}" style="font-family:'DM Sans',sans-serif; font-weight:700; font-size:16px; border:none; cursor:pointer; border-radius:999px; padding:13px 26px; background:#4d8e02; color:#fffdf3; box-shadow:0 4px 0 #3c7300;">下一站 · {{ nextTitle }} →</button>
+            </div>
+          </sc-if>
+
+        </div>
+      </main>
+    </div>
+  </sc-if>
+
+  <!-- ============================= EXIT MODAL ============================= -->
+  <sc-if value="{{ showExit }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ cancelExit }}" style="position:fixed; inset:0; background:rgba(44,58,27,0.45); display:grid; place-items:center; z-index:50; padding:24px;">
+      <div onClick="{{ stop }}" style="width:min(440px,92vw); background:#fffbef; border:1.5px solid #e7dcc0; border-radius:28px; box-shadow:0 14px 30px rgba(74,90,20,0.18); padding:24px 28px 8px; animation:popIn .25s cubic-bezier(.34,1.56,.64,1);">
+        <button onClick="{{ cancelExit }}" style="background:transparent; border:none; cursor:pointer; font-size:26px; line-height:1; color:#8a9472; padding:0;">✕</button>
+        <div style="text-align:center; padding:8px 0 16px;">
+          <div style="font-family:'DM Sans','Noto Sans TC',system-ui,sans-serif; font-weight:700; font-size:30px; color:#2c3a1b;">確定退出？</div>
+          <div style="font-size:16px; color:#546a27; margin-top:8px;">退出即無法儲存課程進度</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; border-top:1.5px solid #e7dcc0;">
+          <button onClick="{{ doExit }}" style="background:transparent; border:none; border-right:1.5px solid #e7dcc0; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:24px; font-weight:600; color:#ec7a00; padding:20px 0;">是</button>
+          <button onClick="{{ cancelExit }}" style="background:transparent; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:24px; font-weight:600; color:#2c3a1b; padding:20px 0;">否</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860},&quot;studentName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;itscrn&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { view: 'login', sec: 0, showExit: false, saved: false, doneMap: {}, name: '', student: '' };
+  contentRef = React.createRef();
+
+  componentDidMount() {
+    try {
+      const doneMap = {};
+      for (let i = 1; i <= 6; i++) doneMap[i] = localStorage.getItem('monta_l' + i + '_done') === '1';
+      const student = localStorage.getItem('monta_student') || '';
+      this.setState({ saved: doneMap[5], doneMap, student, view: student ? 'menu' : 'login' });
+    } catch (e) {}
+  }
+
+  setName = (e) => this.setState({ name: e.target.value });
+  doLogin = () => { const n = (this.state.name || '').trim(); if (!n) return; try { localStorage.setItem('monta_student', n); } catch (e) {} sbLogin(n); this.setState({ student: n, view: 'menu', name: '' }); };
+  onLoginKey = (e) => { if (e.key === 'Enter') this.doLogin(); };
+  signOut = () => { try { localStorage.removeItem('monta_student'); } catch (e) {} this.setState({ student: '', view: 'login', name: '' }); };
+
+  scrollTop = () => { const el = this.contentRef.current; if (el) el.scrollTo({ top: 0, behavior: 'smooth' }); };
+  openLesson = () => { this.setState({ view: 'lesson', sec: 0 }); };
+  goFile = (n) => { window.location.href = 'Lesson ' + n + '.dc.html'; };
+  goMenu = () => this.setState({ view: 'menu', showExit: false });
+  setSec = (i) => { this.setState({ sec: i }); this.scrollTop(); };
+  nextSec = () => { this.scrollTop(); this.setState((s) => ({ sec: Math.min(5, s.sec + 1) })); };
+  prevSec = () => { this.scrollTop(); this.setState((s) => ({ sec: Math.max(0, s.sec - 1) })); };
+  askExit = () => this.setState({ showExit: true });
+  backExit = () => { if (this.state.saved) { this.doExit(); } else { this.askExit(); } };
+  cancelExit = () => this.setState({ showExit: false });
+  doExit = () => this.setState({ view: 'menu', sec: 0, showExit: false });
+  endCourse = () => { try { localStorage.setItem('monta_l5_done', '1'); } catch (e) {} sbEndLesson(5); this.setState((s) => ({ saved: true, doneMap: { ...s.doneMap, 5: true } })); };
+  logout = () => { try { localStorage.setItem('monta_l5_done', '0'); } catch (e) {} this.setState((s) => ({ saved: false, doneMap: { ...s.doneMap, 5: false }, view: 'menu', sec: 0, showExit: false })); };
+  bookNext = () => { window.open('https://calendly.com/yihsuanlee2025/python', '_blank'); };
+  noop = () => {};
+  stop = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+
+  renderVals() {
+    const { view, sec, showExit, saved } = this.state;
+    const NAV = [
+      { icon: '📋', title: '課程總覽' },
+      { icon: '📖', title: '概念講解' },
+      { icon: '💡', title: '例題示範' },
+      { icon: '✏️', title: '動手練習' },
+      { icon: '📝', title: '小考' },
+      { icon: '🎮', title: '遊戲片段預覽' },
+    ];
+    const progress = Math.round((sec / (NAV.length - 1)) * 100);
+
+    const agenda = NAV.map((n, i) => {
+      const isActive = i === sec, isDone = i < sec, isFuture = i > sec;
+      return { icon: n.icon, title: n.title, isActive, isDone, isFuture, onClick: () => this.setSec(i) };
+    });
+
+    const current = 5;
+    const lessonCardBase = { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', width: '170px', padding: '20px 22px', borderRadius: '28px', border: '1.5px solid #e7dcc0', background: '#fff', fontFamily: "'DM Sans','Noto Sans TC',sans-serif", textAlign: 'left', transition: 'all .22s', boxShadow: '0 6px 16px rgba(74,90,20,0.10)' };
+    const badgeBase = { width: '38px', height: '38px', display: 'grid', placeItems: 'center', borderRadius: '12px', fontFamily: "'Pixelify Sans','Cubic 11',sans-serif", fontWeight: 700, fontSize: '18px' };
+    const doneMap = this.state.doneMap || {};
+    let highestDone = 0;
+    for (let i = 1; i <= 6; i++) if (doneMap[i]) highestDone = i;
+    const nextOpen = highestDone + 1;
+    const lessons = [1, 2, 3, 4, 5, 6].map((n) => {
+      const isCurrent = n === current;
+      const isDone = !!doneMap[n] || (isCurrent && saved);
+      const canEnter = isDone || isCurrent || n === nextOpen;
+      let style, badgeStyle, tag, tagStyle, onClick;
+      if (isDone) {
+        onClick = isCurrent ? this.openLesson : () => this.goFile(n);
+        tag = '✓ 已完成';
+        style = { ...lessonCardBase, background: '#eef7e1', borderColor: '#9ccb5b', cursor: 'pointer' };
+        badgeStyle = { ...badgeBase, background: '#4d8e02', color: '#fffdf3', boxShadow: '0 3px 0 #3c7300' };
+        tagStyle = { fontSize: '12.5px', fontWeight: 700, color: '#3c7300' };
+      } else if (canEnter) {
+        onClick = isCurrent ? this.openLesson : () => this.goFile(n);
+        tag = '開始上課 →';
+        style = { ...lessonCardBase, background: '#fff', border: '2px solid #4d8e02', cursor: 'pointer' };
+        badgeStyle = { ...badgeBase, background: '#ff8a1e', color: '#fffdf3', boxShadow: '0 3px 0 #ec7a00' };
+        tagStyle = { fontSize: '12.5px', fontWeight: 700, color: '#4d8e02' };
+      } else {
+        onClick = this.noop;
+        tag = '';
+        style = { ...lessonCardBase, background: '#fbf4e2', borderColor: '#ece2c8', cursor: 'default', boxShadow: 'none' };
+        badgeStyle = { ...badgeBase, background: '#efe6cf', color: '#b3a988', borderColor: '#ece2c8' };
+        tagStyle = { fontSize: '12.5px', fontWeight: 600, color: '#b3a988' };
+      }
+      return { n, label: 'Lesson ' + n, tag, onClick, style, badgeStyle, tagStyle };
+    });
+
+    const goals = [
+      '建立和操作 list：append、pop、len、索引、切片',
+      '用 for...in 遍歷 list 的每個元素',
+      '建立和查詢 dict：新增、修改、刪除、取值',
+      '說明 list 和 dict 各自適合的使用場景',
+      '用 list 儲存貪吃蛇的座標，讓蛇身動態增長',
+    ];
+    const timeline = [
+      { icon: '📖', name: '概念講解', desc: 'list 操作 + dict 基礎' },
+      { icon: '💡', name: '例題示範', desc: '成績管理系統、dict 速查表' },
+      { icon: '☕', name: '休息', desc: '拋出懸念問題再休息' },
+      { icon: '✏️', name: '動手練習', desc: '三個練習，最後完整蛇身增長' },
+      { icon: '📝', name: '小考', desc: '五題，立即對答案' },
+      { icon: '🎮', name: '遊戲片段預覽', desc: '完整蛇身 + 食物重生邏輯' },
+    ];
+    const tdA = 'padding:11px 16px; color:#546a27; vertical-align:top;';
+    const tdB = 'padding:11px 16px; color:#546a27; vertical-align:top; background:#fffbef; border-top:1px solid #efe6cf;';
+    const tdC = 'padding:11px 16px; color:#546a27; vertical-align:top; border-top:1px solid #efe6cf;';
+    const listOps = [
+      { op: 'append(x)', desc: '在尾端加一個元素', ex: "fruits.append('西瓜')", td: tdA },
+      { op: 'pop()', desc: '移除並回傳最後一個', ex: 'last = fruits.pop()', td: tdB },
+      { op: 'insert(i,x)', desc: '在索引 i 插入元素 x', ex: "fruits.insert(1, '草莓')", td: tdC },
+      { op: 'remove(x)', desc: '移除第一個等於 x 的元素', ex: "fruits.remove('蘋果')", td: tdB },
+      { op: 'len(list)', desc: '回傳清單長度', ex: 'print(len(fruits))', td: tdC },
+      { op: 'x in list', desc: '判斷 x 是否在清單裡', ex: "if '蘋果' in fruits:", td: tdB },
+    ];
+
+    // ---- display-only code ----
+    const listCode = "# 建立 list\nfruits = ['蘋果', '香蕉', '橘子']\nscores = [95, 87, 73, 100]\nmixed  = [1, 'hello', True, 3.14]   # 可以混合型別\nempty  = []                          # 空清單\n\n# 用索引取值（從 0 開始！）\nprint(fruits[0])    # 蘋果\nprint(fruits[2])    # 橘子\nprint(fruits[-1])   # 橘子（-1 是最後一個）\n\n# 切片：取出一段\nprint(scores[1:3])  # [87, 73]（從索引 1 到 2，不含 3）\n\n# 修改元素\nfruits[1] = '芒果'\nprint(fruits)       # ['蘋果', '芒果', '橘子']";
+    const iterateCode = "# for...in 遍歷 list\nfor fruit in fruits:\n    print(f\"我喜歡吃{fruit}\")\n\n# 同時拿索引和值：enumerate()\nfor i, fruit in enumerate(fruits):\n    print(f\"第{i+1}個：{fruit}\")";
+    const dictCode = '# 建立 dict\nplayer = {\n    "name":  "小明",\n    "score": 0,\n    "level": 1,\n    "alive": True\n}\n\n# 取值\nprint(player["name"])    # 小明\nprint(player["score"])   # 0\n\n# 新增 / 修改\nplayer["score"] = 10     # 修改現有的 key\nplayer["hp"]    = 100    # 新增一個新的 key\n\n# 刪除\ndel player["level"]\n\n# 安全取值（key 不存在時不報錯）\nname = player.get("name", "無名氏")\n\n# 遍歷\nfor key, value in player.items():\n    print(f"{key}: {value}")';
+    const gameSkeletonCode = '# 整合五週成果的遊戲骨架\nimport random\nGRID_SIZE = 20\n\n# 第一週變數 + 第五週 dict：用一個 dict 裝整個遊戲狀態\ngame = {\n    "snake":     [[10,10],[9,10],[8,10]],\n    "direction": [1, 0],\n    "food":      [5, 5],\n    "score":     0,\n    "running":   True\n}\n\n# 第四週函式 + 第五週 list 操作\ndef move(game):\n    snake = game["snake"]\n    d     = game["direction"]\n    new_head = [snake[0][0]+d[0], snake[0][1]+d[1]]\n    ate = (new_head == game["food"])\n    snake.insert(0, new_head)      # 新蛇頭插最前面\n    if not ate:\n        snake.pop()               # 沒吃到 → 移除尾巴（長度不變）\n    else:\n        game["score"] += 1        # 吃到 → 不移尾巴（變長）+ 食物重生\n        game["food"] = [random.randint(0,19), random.randint(0,19)]\n    return game\n\ndef check(game):                  # 第二週 if 判斷\n    head = game["snake"][0]\n    if head[0]<0 or head[0]>=GRID_SIZE or head[1]<0 or head[1]>=GRID_SIZE:\n        game["running"] = False\n    if head in game["snake"][1:]: # 咬到自己\n        game["running"] = False\n    return game\n\n# 第三週主迴圈\nwhile game["running"]:\n    game = move(game)\n    game = check(game)\nprint(f"遊戲結束！得分：{game[\'score\']}")';
+
+    // ---- runnable code ----
+    const gradesCode = '# 成績管理系統：一個 list 裝多個 dict\nstudents = [\n    {"name": "小明", "score": 88},\n    {"name": "小花", "score": 95},\n    {"name": "小強", "score": 73},\n    {"name": "小美", "score": 91},\n]\n\ndef show_all(students):\n    """印出所有學生的成績"""\n    for i, s in enumerate(students):\n        print(f"{i+1}. {s[\'name\']}：{s[\'score\']} 分")\n\ndef get_average(students):\n    """計算平均分數"""\n    total = 0\n    for s in students:\n        total += s["score"]\n    return total / len(students)\n\ndef get_top(students):\n    """找出最高分學生"""\n    top = students[0]\n    for s in students:\n        if s["score"] > top["score"]:\n            top = s\n    return top\n\nshow_all(students)\nprint(f"平均分數：{get_average(students):.1f}")\nbest = get_top(students)\nprint(f"最高分：{best[\'name\']} {best[\'score\']} 分")';
+    const lookupCode = "# 用 dict 做速查表\n# 舊做法：一堆 if/elif（第二週學的）\ndef get_day_name_old(num):\n    if num == 1: return '星期一'\n    elif num == 2: return '星期二'\n    elif num == 3: return '星期三'\n    # ...一直寫到七，很長！\n\n# 新做法：dict 速查表（更簡潔！）\nday_names = {\n    1: '星期一', 2: '星期二', 3: '星期三',\n    4: '星期四', 5: '星期五', 6: '星期六', 7: '星期日'\n}\n\ndef get_day_name(num):\n    return day_names.get(num, \"無效的數字\")\n\nprint(get_day_name(3))   # 星期三\nprint(get_day_name(8))   # 無效的數字\n\n# 遊戲應用：難度設定表\ndifficulty = {\n    1: {'name': '慢速', 'speed': 200},\n    2: {'name': '中速', 'speed': 150},\n    3: {'name': '快速', 'speed': 100},\n}\nlevel = 2\nsetting = difficulty[level]\nprint(f\"難度：{setting['name']}，速度：{setting['speed']} ms\")";
+    const shoppingCode = '# 購物清單管理員\nshopping_list = []\n\nwhile True:\n    print("目前清單：", shopping_list)\n    action = input("動作（add/remove/done）：")\n    if action == "add":\n        item = input("加入什麼？")\n        shopping_list.append(item)\n    elif action == "remove":\n        item = input("移除什麼？")\n        if item in shopping_list:\n            shopping_list.remove(item)\n            print(f"{item} 已移除")\n        else:\n            print("清單裡沒有這個！")\n    elif action == "done":\n        print("最終清單：", shopping_list)\n        break';
+    const playerCode = '# 玩家資料卡\ndef create_player(name):\n    """建立新玩家，回傳一個 dict"""\n    return {\n        "name":       name,\n        "score":      0,\n        "level":      1,\n        "items":      [],   # 背包（list 放在 dict 裡！）\n        "high_score": 0\n    }\n\ndef add_score(player, points):\n    player["score"] += points\n    if player["score"] > player["high_score"]:\n        player["high_score"] = player["score"]\n    return player\n\ndef pick_up_item(player, item):\n    player["items"].append(item)\n    return player\n\ndef show_player(player):\n    print(f"名稱：{player[\'name\']}")\n    print(f"得分：{player[\'score\']}  最高：{player[\'high_score\']}")\n    print(f"背包：{player[\'items\']}")\n\n# 測試\np = create_player("小明")\np = add_score(p, 50)\np = pick_up_item(p, "寶劍")\np = pick_up_item(p, "盾牌")\nshow_player(p)';
+    const snakeGrowCode = "# 蛇身增長 + 食物重生\nimport random\nGRID_SIZE = 20\n\ndef spawn_food(snake):\n    \"\"\"在不與蛇身重疊的位置產生食物\"\"\"\n    while True:\n        food = [random.randint(0, GRID_SIZE-1),\n                random.randint(0, GRID_SIZE-1)]\n        if food not in snake:   # in 可以用在巢狀 list！\n            return food\n\ndef move_snake(snake, direction, ate_food):\n    \"\"\"移動蛇身：若吃到食物就不移除尾巴（等於變長）\"\"\"\n    new_head = [snake[0][0] + direction[0],\n                snake[0][1] + direction[1]]\n    snake.insert(0, new_head)   # 在最前面插入新蛇頭\n    if not ate_food:\n        snake.pop()             # 沒吃食物：移除尾巴，長度不變\n    return snake\n\ndef is_collision(snake):\n    \"\"\"判斷蛇頭是否碰到邊界或自己\"\"\"\n    head = snake[0]\n    if head[0] < 0 or head[0] >= GRID_SIZE:\n        return True\n    if head[1] < 0 or head[1] >= GRID_SIZE:\n        return True\n    if head in snake[1:]:   # 蛇頭是否在蛇身裡\n        return True\n    return False\n\n# 測試：模擬幾步\nsnake     = [[5,10],[4,10],[3,10]]\ndirection = [1, 0]\nfood      = [8, 10]\nscore     = 0\nprint(f'初始蛇身長度：{len(snake)}，食物位置：{food}')\nfor step in range(5):\n    ate_food = (snake[0][0]+direction[0] == food[0] and\n                snake[0][1]+direction[1] == food[1])\n    snake = move_snake(snake, direction, ate_food)\n    if ate_food:\n        score += 1\n        food = spawn_food(snake)\n        print(f\"第{step+1}步：吃到食物！蛇長={len(snake)}，得分={score}\")\n    else:\n        print(f\"第{step+1}步：移動，蛇頭={snake[0]}\")\n    if is_collision(snake):\n        print(\"碰撞！遊戲結束\")\n        break";
+
+    const prevBase = { fontFamily: "'DM Sans','Noto Sans TC',sans-serif", fontWeight: 700, fontSize: '16px', cursor: 'pointer', borderRadius: '999px', padding: '13px 26px', background: '#fff', color: '#2c3a1b', border: '1.5px solid #e7dcc0' };
+    const prevStyle = sec === 0 ? { ...prevBase, opacity: 0.4, cursor: 'not-allowed' } : prevBase;
+
+    return {
+      isLogin: view === 'login',
+      isMenu: view === 'menu',
+      isLesson: view === 'lesson',
+      showExit,
+      saved,
+      name: this.state.name,
+      setName: this.setName, doLogin: this.doLogin, onLoginKey: this.onLoginKey, signOut: this.signOut,
+      studentName: this.state.student || (this.props.studentName ?? 'itscrn'),
+      lessons,
+      agenda,
+      progress,
+      progressW: progress + '%',
+      secNum: sec + 1,
+      notLast: sec < 5,
+      nextTitle: sec < 5 ? NAV[sec + 1].title : '',
+      isSec0: sec === 0, isSec1: sec === 1, isSec2: sec === 2,
+      isSec3: sec === 3, isSec4: sec === 4, isSec5: sec === 5,
+      goals, timeline, listOps,
+      listCode, iterateCode, dictCode, gameSkeletonCode,
+      gradesCode, lookupCode, shoppingCode, playerCode, snakeGrowCode,
+      shoppingInputs: { 0: 'add\n蘋果\nadd\n牛奶\nadd\n麵包\nremove\n蘋果\ndone' },
+      q1opts: ['蘋果', '香蕉', '橘子', 'IndexError'],
+      q2opts: ['list.add(x)', 'list.insert(x)', 'list.append(x)', 'list.push(x)'],
+      q3opts: ['dict 的 key 可以重複', 'dict 用數字索引取值，例如 d[0]', 'dict.get(key, default) 在 key 不存在時回傳 default', 'dict 裡的元素有固定的順序，不能改變'],
+      q5opts: ["player['score'] += 10", "player['score'] = 10", "player['score'] ++ 10", "player += 10"],
+      prevStyle,
+      noop: this.noop, stop: this.stop,
+      openLesson: this.openLesson, goMenu: this.goMenu,
+      nextSec: this.nextSec, prevSec: this.prevSec,
+      askExit: this.askExit, backExit: this.backExit, cancelExit: this.cancelExit, doExit: this.doExit,
+      endCourse: this.endCourse, bookNext: this.bookNext, logout: this.logout,
+      contentRef: this.contentRef,
+    };
+  }
+}
+</script>
+</body>
+</html>

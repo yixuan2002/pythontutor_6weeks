@@ -1,0 +1,111 @@
+// ════════════════════════════════════════════════
+//  supabase-client.js  ·  Monta Python 課程
+// ════════════════════════════════════════════════
+const SUPABASE_URL = 'https://rrsfyfnsxgzcovrswurf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyc2Z5Zm5zeGd6Y292cnN3dXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mjc3NTUsImV4cCI6MjA5NzUwMzc1NX0.IETsrUhExCsH6dACFC3GTlPuos4JSlIcQwkd7LV3Lrw';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 目前登入的學生 ID（從 localStorage 恢復）
+let _studentId = localStorage.getItem('monta_student_id') || null;
+
+// ──────────────────────────────────────────────
+//  登入：新學生自動建立，回訪學生更新 last_seen_at
+// ──────────────────────────────────────────────
+async function sbLogin(name) {
+  try {
+    // 先查有沒有同名學生
+    const { data: existing } = await db
+      .from('students')
+      .select('id')
+      .eq('name', name)
+      .maybeSingle();
+
+    if (existing) {
+      _studentId = existing.id;
+      await db.from('students')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', _studentId);
+    } else {
+      // 新學生：INSERT（Trigger 會自動建立 6 筆 lesson_progress）
+      const { data: created, error } = await db
+        .from('students')
+        .insert({ name })
+        .select('id')
+        .single();
+      if (error) { console.error('[Supabase] sbLogin insert error:', error); return; }
+      _studentId = created.id;
+    }
+
+    localStorage.setItem('monta_student_id', _studentId);
+  } catch (err) {
+    console.error('[Supabase] sbLogin error:', err);
+  }
+}
+
+// ──────────────────────────────────────────────
+//  結束課程：標記完成 + 解鎖下一堂
+// ──────────────────────────────────────────────
+async function sbEndLesson(lessonNo) {
+  if (!_studentId) return;
+  try {
+    // 目前這堂 → completed
+    await db.from('lesson_progress')
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('student_id', _studentId)
+      .eq('lesson_no', lessonNo);
+
+    // 下一堂 → unlocked（最後一堂不需要）
+    if (lessonNo < 6) {
+      await db.from('lesson_progress')
+        .update({ status: 'unlocked', unlocked_at: new Date().toISOString() })
+        .eq('student_id', _studentId)
+        .eq('lesson_no', lessonNo + 1);
+    }
+  } catch (err) {
+    console.error('[Supabase] sbEndLesson error:', err);
+  }
+}
+
+// ──────────────────────────────────────────────
+//  小考作答：每題只保留最新一次
+//    questionType: 'choice' | 'fill'
+//    answer: 選擇題傳 '0'/'1'/'2'/'3'，填充題傳學生打的字
+// ──────────────────────────────────────────────
+async function sbSaveQuizAnswer(lessonNo, questionNo, questionType, answer, isCorrect) {
+  if (!_studentId) return;
+  try {
+    await db.from('quiz_answers')
+      .upsert({
+        student_id:    _studentId,
+        lesson_no:     lessonNo,
+        question_no:   questionNo,
+        question_type: questionType,
+        answer:        String(answer),
+        is_correct:    isCorrect,
+        answered_at:   new Date().toISOString()
+      }, { onConflict: 'student_id,lesson_no,question_no' });
+  } catch (err) {
+    console.error('[Supabase] sbSaveQuizAnswer error:', err);
+  }
+}
+
+// ──────────────────────────────────────────────
+//  程式練習提交：每次按執行都存一筆
+//    exerciseName: 例如 'bmi.py' / 'intro.py'
+// ──────────────────────────────────────────────
+async function sbSaveCode(lessonNo, exerciseName, code) {
+  if (!_studentId) return;
+  try {
+    await db.from('code_submissions')
+      .insert({
+        student_id:    _studentId,
+        lesson_no:     lessonNo,
+        exercise_name: exerciseName,
+        code:          code,
+        submitted_at:  new Date().toISOString()
+      });
+  } catch (err) {
+    console.error('[Supabase] sbSaveCode error:', err);
+  }
+}

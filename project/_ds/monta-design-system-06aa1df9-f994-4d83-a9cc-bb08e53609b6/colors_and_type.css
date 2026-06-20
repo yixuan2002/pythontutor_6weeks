@@ -1,0 +1,174 @@
+/* ============================================================
+   MONTA — Colors & Type foundations
+   "Weirdly cute. Seriously fun."
+   ------------------------------------------------------------
+   Fonts loaded via Google Fonts CDN (see @import below).
+   SUBSTITUTION FLAG: nearest Google Fonts matches are used:
+     - Display  -> "Pixelify Sans" 700 (blocky pixel face, per
+                   user request to use a pixel-style English face)
+     - UI/Body  -> "Fredoka" (rounded geometric sans)
+   Swap in real font files under fonts/ when available.
+   Alt pixel options also loaded: Jersey 10, Silkscreen.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Jersey+10&family=Silkscreen:wght@400;700&family=Fredoka:wght@400;500;600;700&display=swap');
+
+/* Cubic 11 (俰方體11號) — Traditional-Chinese 11×11 bitmap face for CJK display.
+   Open source (SIL OFL 1.1), bundled locally under fonts/. */
+@font-face {
+  font-family: 'Cubic 11';
+  src: url('fonts/Cubic_11.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- Brand core ---------- */
+  --monta-orange:      #ff8a1e;  /* primary — headlines, CTAs, accents */
+  --monta-orange-deep: #ec7a00;  /* pressed / darker orange */
+  --monta-orange-soft: #ffb46b;  /* tints, glows */
+  --monta-green:       #4d8e02;  /* brand green — logo, nav, buttons */
+  --monta-green-deep:  #3c7300;  /* pressed green / logo */
+  --monta-green-soft:  #cfe6a8;  /* green tints */
+
+  /* ---------- Playful card palette ---------- */
+  --monta-blue:   #8fc0f5;
+  --monta-pink:   #fe9cdc;
+  --monta-yellow: #f7da5a;
+  --monta-blue-deep:   #5a9fe6;
+  --monta-pink-deep:   #f56fc4;
+  --monta-yellow-deep: #ecc52f;
+
+  /* ---------- Neutrals (warm, paper-like) ---------- */
+  --paper:     #fffbef;  /* base background — warm cream */
+  --paper-2:   #fdf4dc;  /* slightly deeper section cream */
+  --paper-3:   #f6ecd2;  /* card insets / wells */
+  --line:      #e7dcc0;  /* hairline grid / borders */
+  --line-soft: #efe6cf;
+
+  /* ---------- Foreground ---------- */
+  --ink:       #2c3a1b;  /* primary text — deep olive-green near black */
+  --ink-2:     #546a27;  /* secondary text — olive green */
+  --ink-3:     #8a9472;  /* muted / captions */
+  --on-color:  #fffdf3;  /* text on orange/green fills */
+
+  /* ---------- Radii (very rounded brand) ---------- */
+  --r-xs: 8px;
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-xl: 40px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ---------- Shadows (soft, toy-like, no harsh black) ---------- */
+  --shadow-sm: 0 2px 0 rgba(60,72,0,0.10);
+  --shadow-md: 0 6px 16px rgba(74,90,20,0.14);
+  --shadow-lg: 0 14px 30px rgba(74,90,20,0.18);
+  --shadow-pop: 0 4px 0 var(--monta-green-deep);   /* chunky button base */
+  --shadow-pop-orange: 0 4px 0 var(--monta-orange-deep);
+
+  /* ---------- Type families ---------- */
+  /* Latin glyphs fall to Pixelify Sans; CJK glyphs fall through to Cubic 11. */
+  --font-display: 'Pixelify Sans', 'Cubic 11', system-ui, sans-serif;  /* pixel display */
+  --font-display-cjk: 'Cubic 11', 'Pixelify Sans', system-ui, sans-serif; /* CJK-first pixel */
+  --font-display-round: 'Baloo 2', system-ui, sans-serif;  /* legacy rounded display */
+  --font-ui:      'Fredoka', 'Cubic 11', system-ui, sans-serif;
+
+  /* ---------- Motion ---------- */
+  --ease-bounce: cubic-bezier(.34,1.56,.64,1); /* @kind other */
+  --ease-out:    cubic-bezier(.22,.61,.36,1); /* @kind other */
+  --dur-fast: 120ms; /* @kind other */
+  --dur:      220ms; /* @kind other */
+  --dur-slow: 380ms; /* @kind other */
+}
+
+/* ============================================================
+   Semantic type styles
+   ============================================================ */
+.monta-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  color: var(--monta-orange);
+}
+
+h1, .monta-h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 92px);
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+h2, .monta-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.0;
+  color: var(--ink);
+  margin: 0;
+}
+
+h3, .monta-h3 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0;
+}
+
+p, .monta-body {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.monta-lead {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.monta-eyebrow {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--monta-green);
+}
+
+.monta-caption {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.monta-label {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+}

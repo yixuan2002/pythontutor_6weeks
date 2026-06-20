@@ -1,0 +1,167 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "logos/**",
+              "ui_kits/website/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Cubic 11|Pixelify Sans|Jersey 10|Silkscreen|Fredoka))/i]",
+        "message": "Font not provided by the design system. Available: Cubic 11, Pixelify Sans, Jersey 10, Silkscreen, Fredoka."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--dur",
+      "--dur-fast",
+      "--dur-slow",
+      "--ease-bounce",
+      "--ease-out",
+      "--font-display",
+      "--font-display-cjk",
+      "--font-display-round",
+      "--font-ui",
+      "--ink",
+      "--ink-2",
+      "--ink-3",
+      "--line",
+      "--line-soft",
+      "--monta-blue",
+      "--monta-blue-deep",
+      "--monta-green",
+      "--monta-green-deep",
+      "--monta-green-soft",
+      "--monta-orange",
+      "--monta-orange-deep",
+      "--monta-orange-soft",
+      "--monta-pink",
+      "--monta-pink-deep",
+      "--monta-yellow",
+      "--monta-yellow-deep",
+      "--on-color",
+      "--paper",
+      "--paper-2",
+      "--paper-3",
+      "--r-lg",
+      "--r-md",
+      "--r-pill",
+      "--r-sm",
+      "--r-xl",
+      "--r-xs",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-pop",
+      "--shadow-pop-orange",
+      "--shadow-sm",
+      "--sp-1",
+      "--sp-2",
+      "--sp-3",
+      "--sp-4",
+      "--sp-5",
+      "--sp-6",
+      "--sp-7",
+      "--sp-8",
+      "--sp-9"
+    ],
+    "tokenKinds": {
+      "--monta-orange": "color",
+      "--monta-orange-deep": "color",
+      "--monta-orange-soft": "color",
+      "--monta-green": "color",
+      "--monta-green-deep": "color",
+      "--monta-green-soft": "color",
+      "--monta-blue": "color",
+      "--monta-pink": "color",
+      "--monta-yellow": "color",
+      "--monta-blue-deep": "color",
+      "--monta-pink-deep": "color",
+      "--monta-yellow-deep": "color",
+      "--paper": "color",
+      "--paper-2": "color",
+      "--paper-3": "color",
+      "--line": "color",
+      "--line-soft": "color",
+      "--ink": "color",
+      "--ink-2": "color",
+      "--ink-3": "color",
+      "--on-color": "color",
+      "--r-xs": "spacing",
+      "--r-sm": "spacing",
+      "--r-md": "spacing",
+      "--r-lg": "spacing",
+      "--r-xl": "spacing",
+      "--r-pill": "spacing",
+      "--sp-1": "spacing",
+      "--sp-2": "spacing",
+      "--sp-3": "spacing",
+      "--sp-4": "spacing",
+      "--sp-5": "spacing",
+      "--sp-6": "spacing",
+      "--sp-7": "spacing",
+      "--sp-8": "spacing",
+      "--sp-9": "spacing",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-pop": "shadow",
+      "--shadow-pop-orange": "shadow",
+      "--font-display": "font",
+      "--font-display-cjk": "font",
+      "--font-display-round": "radius",
+      "--font-ui": "font",
+      "--ease-bounce": "other",
+      "--ease-out": "other",
+      "--dur-fast": "other",
+      "--dur": "other",
+      "--dur-slow": "other"
+    },
+    "fontFamilies": [
+      "Cubic 11",
+      "Fredoka",
+      "Jersey 10",
+      "Pixelify Sans",
+      "Silkscreen"
+    ]
+  }
+}
