@@ -10,36 +10,32 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let _studentId = localStorage.getItem('monta_student_id') || null;
 
 // ──────────────────────────────────────────────
-//  登入：新學生自動建立，回訪學生更新 last_seen_at
+//  登入：只有老師預先建立的學生才能登入
+//  回傳 true（成功）或 false（找不到）
 // ──────────────────────────────────────────────
 async function sbLogin(name) {
   try {
-    // 先查有沒有同名學生
-    const { data: existing } = await db
+    const { data, error } = await db
       .from('students')
       .select('id')
       .eq('name', name)
       .maybeSingle();
 
-    if (existing) {
-      _studentId = existing.id;
-      await db.from('students')
-        .update({ last_seen_at: new Date().toISOString() })
-        .eq('id', _studentId);
-    } else {
-      // 新學生：INSERT（Trigger 會自動建立 6 筆 lesson_progress）
-      const { data: created, error } = await db
-        .from('students')
-        .insert({ name })
-        .select('id')
-        .single();
-      if (error) { console.error('[Supabase] sbLogin insert error:', error); return; }
-      _studentId = created.id;
-    }
+    if (error) { console.error('[Supabase] sbLogin error:', error); return false; }
+    if (!data) return false;  // 找不到這個學生
 
+    _studentId = data.id;
     localStorage.setItem('monta_student_id', _studentId);
+
+    // 更新最後登入時間
+    await db.from('students')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', _studentId);
+
+    return true;
   } catch (err) {
     console.error('[Supabase] sbLogin error:', err);
+    return false;
   }
 }
 
