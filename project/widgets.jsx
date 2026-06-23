@@ -793,10 +793,18 @@ function detectPrompts(code) {
    ============================================================ */
 function PyRunner({ initialCode, code: codeProp, file = 'main.py', defaultInputs = {} }) {
   const originalSeed = initialCode != null ? initialCode : (codeProp != null ? codeProp : '');
-  // 如果 Supabase 有這個練習的歷史紀錄，優先用它
-  const saved = window.__codeSubmissions__ && window.__codeSubmissions__[file];
-  const seed = saved || originalSeed;
-  const [code, setCode] = React.useState(seed);
+  const getSaved = () => (window.__codeSubmissions__ && window.__codeSubmissions__[file]) || originalSeed;
+  const [code, setCode] = React.useState(getSaved);
+
+  // 當 Supabase 非同步載完資料後，更新程式碼
+  React.useEffect(() => {
+    const handler = () => {
+      const saved = window.__codeSubmissions__ && window.__codeSubmissions__[file];
+      if (saved) setCode(saved);
+    };
+    window.addEventListener('sb:code-loaded', handler);
+    return () => window.removeEventListener('sb:code-loaded', handler);
+  }, [file]);
   const [inputs, setInputs] = React.useState(defaultInputs);
   const [output, setOutput] = React.useState(null);
   const [err, setErr] = React.useState(null);
@@ -896,6 +904,16 @@ function QuizQuestion({ no, question, options, answer, explain }) {
   const saved = window.__quizAnswers__ && window.__quizAnswers__[no];
   const [picked, setPicked] = React.useState(saved ? parseInt(saved.answer) : null);
   const ans = Number(answer);
+
+  // 當 Supabase 非同步載完後，還原已作答狀態
+  React.useEffect(() => {
+    const handler = () => {
+      const s = window.__quizAnswers__ && window.__quizAnswers__[no];
+      if (s && picked === null) setPicked(parseInt(s.answer));
+    };
+    window.addEventListener('sb:quiz-loaded', handler);
+    return () => window.removeEventListener('sb:quiz-loaded', handler);
+  }, [no]);
   const letters = ['A', 'B', 'C', 'D'];
   const opts = Array.isArray(options) ? options : [];
   return (
@@ -1023,6 +1041,16 @@ function FillQuestion({ no, question, answer, explain }) {
   const saved = window.__quizAnswers__ && window.__quizAnswers__[no];
   const [val, setVal] = React.useState(saved ? saved.answer : '');
   const [checked, setChecked] = React.useState(saved ? true : false);
+
+  // 當 Supabase 非同步載完後，還原填充題狀態
+  React.useEffect(() => {
+    const handler = () => {
+      const s = window.__quizAnswers__ && window.__quizAnswers__[no];
+      if (s && !checked) { setVal(s.answer); setChecked(true); }
+    };
+    window.addEventListener('sb:quiz-loaded', handler);
+    return () => window.removeEventListener('sb:quiz-loaded', handler);
+  }, [no]);
   const accepts = String(answer).split('|').map((a) => a.trim().toLowerCase());
   const correct = accepts.includes(val.trim().toLowerCase());
   const state = checked ? (correct ? 'right' : 'miss') : 'idle';

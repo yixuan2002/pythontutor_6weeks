@@ -75,6 +75,7 @@ async function sbLoadQuizAnswers(lessonNo) {
         };
       });
     }
+    window.dispatchEvent(new CustomEvent('sb:quiz-loaded'));
   } catch (err) {
     console.error('[Supabase] sbLoadQuizAnswers error:', err);
   }
@@ -142,13 +143,13 @@ async function sbLoadCodeSubmissions(lessonNo) {
 
     window.__codeSubmissions__ = {};
     if (data) {
-      // 每個 exercise 只保留最新一筆（因為已按時間倒序，第一筆就是最新的）
       data.forEach(row => {
         if (!window.__codeSubmissions__[row.exercise_name]) {
           window.__codeSubmissions__[row.exercise_name] = row.code;
         }
       });
     }
+    window.dispatchEvent(new CustomEvent('sb:code-loaded'));
   } catch (err) {
     console.error('[Supabase] sbLoadCodeSubmissions error:', err);
   }
