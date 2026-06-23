@@ -4,7 +4,13 @@
 const SUPABASE_URL = 'https://rrsfyfnsxgzcovrswurf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyc2Z5Zm5zeGd6Y292cnN3dXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mjc3NTUsImV4cCI6MjA5NzUwMzc1NX0.IETsrUhExCsH6dACFC3GTlPuos4JSlIcQwkd7LV3Lrw';
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 把初始化包在 try-catch，避免任何錯誤影響到其他頁面功能
+let db = null;
+try {
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (e) {
+  console.error('[Supabase] 初始化失敗，請確認 CDN 是否正確載入：', e);
+}
 
 // 目前登入的學生 ID（從 localStorage 恢復）
 let _studentId = localStorage.getItem('monta_student_id') || null;
@@ -21,6 +27,7 @@ window.__codeSubmissions__ = {};
 //  回傳 true（成功）或 false（找不到）
 // ──────────────────────────────────────────────
 async function sbLogin(name) {
+  if (!db) return false;
   try {
     const { data, error } = await db
       .from('students')
@@ -51,7 +58,7 @@ async function sbLogin(name) {
 //  存進 window.__quizAnswers__[questionNo] = { answer, is_correct }
 // ──────────────────────────────────────────────
 async function sbLoadQuizAnswers(lessonNo) {
-  if (!_studentId) return;
+  if (!db || !_studentId) return;
   try {
     const { data } = await db
       .from('quiz_answers')
@@ -77,7 +84,7 @@ async function sbLoadQuizAnswers(lessonNo) {
 //  結束課程：標記完成 + 解鎖下一堂
 // ──────────────────────────────────────────────
 async function sbEndLesson(lessonNo) {
-  if (!_studentId) return;
+  if (!db || !_studentId) return;
   try {
     // 目前這堂 → completed
     await db.from('lesson_progress')
@@ -103,7 +110,7 @@ async function sbEndLesson(lessonNo) {
 //    answer: 選擇題傳 '0'/'1'/'2'/'3'，填充題傳學生打的字
 // ──────────────────────────────────────────────
 async function sbSaveQuizAnswer(lessonNo, questionNo, questionType, answer, isCorrect) {
-  if (!_studentId) return;
+  if (!db || !_studentId) return;
   try {
     await db.from('quiz_answers')
       .upsert({
@@ -124,7 +131,7 @@ async function sbSaveQuizAnswer(lessonNo, questionNo, questionType, answer, isCo
 //  頁面載入時讀取這堂課每個練習的最新程式碼
 // ──────────────────────────────────────────────
 async function sbLoadCodeSubmissions(lessonNo) {
-  if (!_studentId) return;
+  if (!db || !_studentId) return;
   try {
     const { data } = await db
       .from('code_submissions')
@@ -152,7 +159,7 @@ async function sbLoadCodeSubmissions(lessonNo) {
 //    exerciseName: 例如 'bmi.py' / 'intro.py'
 // ──────────────────────────────────────────────
 async function sbSaveCode(lessonNo, exerciseName, code) {
-  if (!_studentId) return;
+  if (!db || !_studentId) return;
   try {
     await db.from('code_submissions')
       .insert({
