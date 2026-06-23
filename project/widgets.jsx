@@ -909,7 +909,7 @@ function QuizQuestion({ no, question, options, answer, explain }) {
           if (isCorrect) { okBase.background = M.green; okBase.borderColor = M.green; okBase.color = '#fff'; }
           if (isWrong) { okBase.background = M.orangeDeep; okBase.borderColor = M.orangeDeep; okBase.color = '#fff'; }
           return (
-            <button key={i} disabled={picked !== null} onClick={() => setPicked(i)} style={base}>
+            <button key={i} disabled={picked !== null} onClick={() => { setPicked(i); if (typeof sbSaveQuizAnswer === 'function') sbSaveQuizAnswer(window.__lessonNo__ || 0, no, 'choice', i, i === ans); }} style={base}>
               <span style={okBase}>{picked !== null && i === ans ? '✓' : picked === i ? '✕' : letters[i]}</span>
               <span>{opt}</span>
             </button>
@@ -1031,7 +1031,7 @@ function FillQuestion({ no, question, answer, explain }) {
           onKeyDown={(e) => { if (e.key === 'Enter') setChecked(true); }}
           placeholder="在這裡作答…"
           style={{ flex: '1 1 200px', fontFamily: M.mono, fontSize: 15, color: M.ink, background: M.paper, border: `1.5px solid ${border}`, borderRadius: 14, padding: '11px 14px', outline: 'none' }} />
-        <button onClick={() => setChecked(true)} style={{ fontFamily: M.fontUI, fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', borderRadius: 999, padding: '11px 22px', background: M.green, color: M.onColor, boxShadow: '0 4px 0 ' + M.greenDeep }}>檢查</button>
+        <button onClick={() => { setChecked(true); const c = accepts.includes(val.trim().toLowerCase()); if (typeof sbSaveQuizAnswer === 'function') sbSaveQuizAnswer(window.__lessonNo__ || 0, no, 'fill', val.trim(), c); }} style={{ fontFamily: M.fontUI, fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', borderRadius: 999, padding: '11px 22px', background: M.green, color: M.onColor, boxShadow: '0 4px 0 ' + M.greenDeep }}>檢查</button>
       </div>
       {checked && (
         <div style={{ marginTop: 14, fontSize: 14.5, fontWeight: 600, padding: '11px 15px', borderRadius: 14, background: correct ? '#eef7e1' : '#fdeee2', color: correct ? M.greenDeep : M.orangeDeep }}>
