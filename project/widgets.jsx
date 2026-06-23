@@ -792,7 +792,10 @@ function detectPrompts(code) {
    PyRunner — editable code (left) + output (right)
    ============================================================ */
 function PyRunner({ initialCode, code: codeProp, file = 'main.py', defaultInputs = {} }) {
-  const seed = initialCode != null ? initialCode : (codeProp != null ? codeProp : '');
+  const originalSeed = initialCode != null ? initialCode : (codeProp != null ? codeProp : '');
+  // 如果 Supabase 有這個練習的歷史紀錄，優先用它
+  const saved = window.__codeSubmissions__ && window.__codeSubmissions__[file];
+  const seed = saved || originalSeed;
   const [code, setCode] = React.useState(seed);
   const [inputs, setInputs] = React.useState(defaultInputs);
   const [output, setOutput] = React.useState(null);
@@ -821,6 +824,8 @@ function PyRunner({ initialCode, code: codeProp, file = 'main.py', defaultInputs
     let qi = 0; const stdin = () => (qi < queue.length ? queue[qi++] : null);
     try { setOutput(runPython(code, stdin)); setErr(null); }
     catch (e) { setErr(e.message || String(e)); setOutput(null); }
+    // 存到 Supabase（fire and forget）
+    if (typeof sbSaveCode === 'function') sbSaveCode(window.__lessonNo__ || 0, file, code);
   }
   function reset() { setCode(seed); setInputs(defaultInputs); setOutput(null); setErr(null); }
   function handleTab(e) {

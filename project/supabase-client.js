@@ -12,6 +12,10 @@ let _studentId = localStorage.getItem('monta_student_id') || null;
 // 目前這堂課已作答的題目，供 QuizQuestion / FillQuestion 讀取初始值
 window.__quizAnswers__ = {};
 
+// 目前這堂課最新的程式碼，供 PyRunner 讀取初始值
+// key = exercise_name（例如 'bmi.py'），value = code 字串
+window.__codeSubmissions__ = {};
+
 // ──────────────────────────────────────────────
 //  登入：只有老師預先建立的學生才能登入
 //  回傳 true（成功）或 false（找不到）
@@ -113,6 +117,33 @@ async function sbSaveQuizAnswer(lessonNo, questionNo, questionType, answer, isCo
       }, { onConflict: 'student_id,lesson_no,question_no' });
   } catch (err) {
     console.error('[Supabase] sbSaveQuizAnswer error:', err);
+  }
+}
+
+// ──────────────────────────────────────────────
+//  頁面載入時讀取這堂課每個練習的最新程式碼
+// ──────────────────────────────────────────────
+async function sbLoadCodeSubmissions(lessonNo) {
+  if (!_studentId) return;
+  try {
+    const { data } = await db
+      .from('code_submissions')
+      .select('exercise_name, code, submitted_at')
+      .eq('student_id', _studentId)
+      .eq('lesson_no', lessonNo)
+      .order('submitted_at', { ascending: false });
+
+    window.__codeSubmissions__ = {};
+    if (data) {
+      // 每個 exercise 只保留最新一筆（因為已按時間倒序，第一筆就是最新的）
+      data.forEach(row => {
+        if (!window.__codeSubmissions__[row.exercise_name]) {
+          window.__codeSubmissions__[row.exercise_name] = row.code;
+        }
+      });
+    }
+  } catch (err) {
+    console.error('[Supabase] sbLoadCodeSubmissions error:', err);
   }
 }
 
