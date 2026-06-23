@@ -9,6 +9,9 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 目前登入的學生 ID（從 localStorage 恢復）
 let _studentId = localStorage.getItem('monta_student_id') || null;
 
+// 目前這堂課已作答的題目，供 QuizQuestion / FillQuestion 讀取初始值
+window.__quizAnswers__ = {};
+
 // ──────────────────────────────────────────────
 //  登入：只有老師預先建立的學生才能登入
 //  回傳 true（成功）或 false（找不到）
@@ -36,6 +39,33 @@ async function sbLogin(name) {
   } catch (err) {
     console.error('[Supabase] sbLogin error:', err);
     return false;
+  }
+}
+
+// ──────────────────────────────────────────────
+//  頁面載入時讀取這堂課的作答紀錄
+//  存進 window.__quizAnswers__[questionNo] = { answer, is_correct }
+// ──────────────────────────────────────────────
+async function sbLoadQuizAnswers(lessonNo) {
+  if (!_studentId) return;
+  try {
+    const { data } = await db
+      .from('quiz_answers')
+      .select('question_no, answer, is_correct')
+      .eq('student_id', _studentId)
+      .eq('lesson_no', lessonNo);
+
+    window.__quizAnswers__ = {};
+    if (data) {
+      data.forEach(row => {
+        window.__quizAnswers__[row.question_no] = {
+          answer:     row.answer,
+          is_correct: row.is_correct
+        };
+      });
+    }
+  } catch (err) {
+    console.error('[Supabase] sbLoadQuizAnswers error:', err);
   }
 }
 

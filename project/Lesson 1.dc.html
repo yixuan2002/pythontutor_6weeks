@@ -462,7 +462,7 @@ class Component extends DCLogic {
   state = { view: 'login', sec: 0, showExit: false, saved: false, doneMap: {}, name: '', student: '', loginError: '' };
   contentRef = React.createRef();
 
-  componentDidMount() { window.__lessonNo__ = 1;
+  componentDidMount() { window.__lessonNo__ = 1; sbLoadQuizAnswers(1);
     try {
       const doneMap = {};
       for (let i = 1; i <= 6; i++) doneMap[i] = localStorage.getItem('monta_l' + i + '_done') === '1';

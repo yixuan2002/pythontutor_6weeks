@@ -888,7 +888,8 @@ function PyRunner({ initialCode, code: codeProp, file = 'main.py', defaultInputs
    QuizQuestion
    ============================================================ */
 function QuizQuestion({ no, question, options, answer, explain }) {
-  const [picked, setPicked] = React.useState(null);
+  const saved = window.__quizAnswers__ && window.__quizAnswers__[no];
+  const [picked, setPicked] = React.useState(saved ? parseInt(saved.answer) : null);
   const ans = Number(answer);
   const letters = ['A', 'B', 'C', 'D'];
   const opts = Array.isArray(options) ? options : [];
@@ -1014,8 +1015,9 @@ function SnakeGame() {
    FillQuestion — fill-in-the-blank
    ============================================================ */
 function FillQuestion({ no, question, answer, explain }) {
-  const [val, setVal] = React.useState('');
-  const [checked, setChecked] = React.useState(false);
+  const saved = window.__quizAnswers__ && window.__quizAnswers__[no];
+  const [val, setVal] = React.useState(saved ? saved.answer : '');
+  const [checked, setChecked] = React.useState(saved ? true : false);
   const accepts = String(answer).split('|').map((a) => a.trim().toLowerCase());
   const correct = accepts.includes(val.trim().toLowerCase());
   const state = checked ? (correct ? 'right' : 'miss') : 'idle';
