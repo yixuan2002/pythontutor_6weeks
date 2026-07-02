@@ -54,6 +54,31 @@ async function sbLogin(name) {
 }
 
 // ──────────────────────────────────────────────
+//  登入後從 Supabase 載入這個學生的課程進度
+//  回傳 { 1: true/false, 2: true/false, ... }
+// ──────────────────────────────────────────────
+async function sbLoadLessonProgress() {
+  if (!db || !_studentId) return null;
+  try {
+    const { data } = await db
+      .from('lesson_progress')
+      .select('lesson_no, status')
+      .eq('student_id', _studentId);
+
+    const doneMap = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false };
+    if (data) {
+      data.forEach(row => {
+        if (row.status === 'completed') doneMap[row.lesson_no] = true;
+      });
+    }
+    return doneMap;
+  } catch (err) {
+    console.error('[Supabase] sbLoadLessonProgress error:', err);
+    return null;
+  }
+}
+
+// ──────────────────────────────────────────────
 //  頁面載入時讀取這堂課的作答紀錄
 //  存進 window.__quizAnswers__[questionNo] = { answer, is_correct }
 // ──────────────────────────────────────────────

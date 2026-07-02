@@ -403,7 +403,7 @@ class Component extends DCLogic {
   }
 
   setName = (e) => this.setState({ name: e.target.value });
-  doLogin = async () => { const n = (this.state.name || '').trim(); if (!n) return; const ok = await sbLogin(n); if (!ok) { this.setState({ loginError: '找不到這個名字，請聯絡老師 🙏' }); return; } try { localStorage.setItem('monta_student', n); } catch (e) {} this.setState({ student: n, view: 'menu', name: '', loginError: '' }); };
+  doLogin = async () => { const n = (this.state.name || '').trim(); if (!n) return; const ok = await sbLogin(n); if (!ok) { this.setState({ loginError: '找不到這個名字，請聯絡老師 🙏' }); return; } try { localStorage.setItem('monta_student', n); } catch (e) {} const doneMap = await sbLoadLessonProgress() || {}; this.setState({ student: n, view: 'menu', name: '', loginError: '', doneMap, saved: !!doneMap[window.__lessonNo__] }); };
   onLoginKey = (e) => { if (e.key === 'Enter') this.doLogin(); };
   signOut = () => { try { localStorage.removeItem('monta_student'); localStorage.removeItem('monta_student_id'); } catch (e) {} window.location.href = '/'; };
 
