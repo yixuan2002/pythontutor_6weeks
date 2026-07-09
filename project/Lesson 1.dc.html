@@ -378,11 +378,17 @@ Pi = 3.14</pre>
             <div>
               <div style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#4d8e02; background:#cfe6a8; border-radius:999px; padding:6px 14px; margin-bottom:16px;">📝 第四部分</div>
               <h1 style="font-family:'Pixelify Sans','Cubic 11',system-ui,sans-serif; font-weight:700; font-size:clamp(34px,5vw,52px); line-height:1.0; color:#2c3a1b; margin:0 0 12px;">小考</h1>
-              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">四題，前三題選擇、最後一題填充。作答後馬上知道答案！</p>
+              <p style="font-size:19px; font-weight:500; line-height:1.5; color:#546a27; margin:0 0 32px;">十題，選擇＋填充混合。作答後馬上知道答案！</p>
               <x-import component="QuizQuestion" from="./widgets.jsx" no="1" question="下列哪一個是合法的 Python 變數名稱？" options="{{ q1opts }}" answer="2" explain="變數不能以數字開頭、不能有空格、不能用減號；底線是允許的。" hint-size="100%,300px"></x-import>
               <x-import component="QuizQuestion" from="./widgets.jsx" no="2" question="age = input(&quot;幾歲？&quot;) 執行後，age 的型別是？" options="{{ q2opts }}" answer="2" explain="input() 一律回傳字串（str），要做運算得先用 int() 轉換。" hint-size="100%,300px"></x-import>
               <x-import component="QuizQuestion" from="./widgets.jsx" no="3" question="print(f&quot;我叫 {name}&quot;) 中，f 的作用是？" options="{{ q3opts }}" answer="1" explain="f-string 讓你把變數直接放進 {} 裡，輸出時自動代入它的值。" hint-size="100%,300px"></x-import>
               <x-import component="FillQuestion" from="./widgets.jsx" no="4" question="讀取使用者輸入的函式是什麼？" answer="input" explain="input() 負責等待使用者輸入並回傳結果。" hint-size="100%,200px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="5" question="10 / 2 的結果是什麼型別？" options="{{ q5opts }}" answer="1" explain="/ 永遠回傳浮點數（float），所以 10 / 2 的結果是 5.0，不是整數 5。" hint-size="100%,300px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="6" question="下列哪個變數名稱會讓 Python 報錯？" options="{{ q6opts }}" answer="2" explain="class 是 Python 的保留字（關鍵字），不能拿來當變數名稱。" hint-size="100%,300px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="7" question='&quot;5&quot; + &quot;3&quot; 的結果是什麼？' options="{{ q7opts }}" answer="2" explain="字串用 + 是串接，不是數學加法，所以 &quot;5&quot; + &quot;3&quot; = &quot;53&quot;。" hint-size="100%,300px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="8" question="下列哪行程式會讓 x 的值變成整數 3？" options="{{ q8opts }}" answer="2" explain="// 是整數除法，直接去掉小數，10 // 3 = 3。/ 是一般除法永遠回傳浮點數。" hint-size="100%,300px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="9" question="2 ** 3 ** 2 的結果是什麼？" options="{{ q9opts }}" answer="1" explain="** 由右到左計算：先算 3 ** 2 = 9，再算 2 ** 9 = 512。" hint-size="100%,300px"></x-import>
+              <x-import component="QuizQuestion" from="./widgets.jsx" no="10" question="以下程式執行後會印出什麼？　x = 7　print(f&quot;{x % 3} and {x // 3}&quot;)" options="{{ q10opts }}" answer="1" explain="7 % 3 = 1（餘數），7 // 3 = 2（商），所以印出 1 and 2。" hint-size="100%,330px"></x-import>
             </div>
           </sc-if>
 
@@ -661,6 +667,12 @@ class Component extends DCLogic {
       q1opts: ['2score', 'my score', 'my_score', 'my-score'],
       q2opts: ['int', 'float', 'str', 'bool'],
       q3opts: ['讓字串變大寫', '讓 {} 裡的變數被代入', '印出字母 f', '限定只能輸入英文'],
+      q5opts: ['int', 'float', 'str', 'bool'],
+      q6opts: ['score_1', '_name', 'class', 'Name'],
+      q7opts: ['8', '8.0', '"53"', '報錯'],
+      q8opts: ['x = 10 / 3', 'x = 10 % 3', 'x = 10 // 3', 'x = 10 ** 3'],
+      q9opts: ['64', '512', '36', '8'],
+      q10opts: ['2 and 1', '1 and 2', '2 and 2', '1 and 1'],
       prevStyle,
       // handlers
       noop: this.noop, stop: this.stop,
