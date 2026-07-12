@@ -473,12 +473,12 @@ class Component extends DCLogic {
       const doneMap = {};
       for (let i = 1; i <= 6; i++) doneMap[i] = localStorage.getItem('monta_l' + i + '_done') === '1';
       const student = localStorage.getItem('monta_student') || '';
-      this.setState({ saved: doneMap[1], doneMap, student, view: student ? 'menu' : 'login' });
+      this.setState({ saved: doneMap[1], doneMap, student, view: student ? 'menu' : 'login' }); if (student) { sbLoadLessonProgress().then(fresh => { if (fresh) { for (let j = 1; j <= 6; j++) { try { localStorage.setItem('monta_l' + j + '_done', fresh[j] ? '1' : '0'); } catch(e) {} } this.setState({ doneMap: fresh, saved: !!fresh[window.__lessonNo__] }); } }); }
     } catch (e) {}
   }
 
   setName = (e) => this.setState({ name: e.target.value });
-  doLogin = async () => { const n = (this.state.name || '').trim(); if (!n) return; const ok = await sbLogin(n); if (!ok) { this.setState({ loginError: '找不到這個名字，請聯絡老師 🙏' }); return; } try { localStorage.setItem('monta_student', n); } catch (e) {} const doneMap = await sbLoadLessonProgress() || {}; this.setState({ student: n, view: 'menu', name: '', loginError: '', doneMap, saved: !!doneMap[window.__lessonNo__] }); };
+  doLogin = async () => { const n = (this.state.name || '').trim(); if (!n) return; const ok = await sbLogin(n); if (!ok) { this.setState({ loginError: '找不到這個名字，請聯絡老師 🙏' }); return; } try { localStorage.setItem('monta_student', n); } catch (e) {} const doneMap = await sbLoadLessonProgress() || {}; for (let i = 1; i <= 6; i++) { try { localStorage.setItem('monta_l' + i + '_done', doneMap[i] ? '1' : '0'); } catch(e) {} } this.setState({ student: n, view: 'menu', name: '', loginError: '', doneMap, saved: !!doneMap[window.__lessonNo__] }); };
   onLoginKey = (e) => { if (e.key === 'Enter') this.doLogin(); };
   signOut = () => { try { localStorage.removeItem('monta_student'); localStorage.removeItem('monta_student_id'); } catch (e) {} window.location.href = '/'; };
 
